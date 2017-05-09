@@ -1,5 +1,8 @@
 # coding: utf-8
+require 'active_support'
 require 'active_support/core_ext'
+require 'nokogiri'
+require 'mechanize'
 
 class Mechanize::Page
   def resolve_url url
