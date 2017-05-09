@@ -1,64 +1,33 @@
+require 'mechanize_adapter'
+
 class Crawler
-	def say_hello(x)
-		puts "say_hello method 1"
-	end
+	include MechanizeAdapter
 
+	def crawl(url)
+		link = url
 
-	def crawl
-		entry = BlogEntry.new
-		entry.author = "Rae"
-		entry.title = "I Wrote This"
-		
-		## not as clean
-		# display_name_basic = entry.author + entry.title
-		# puts display_name_basic
-
-		# proper concatenation
-		display_name = "#{entry.title}, By: #{entry.author}"
-		puts display_name
-
-	end
-
-
-# loop (generic)
-	def loop
-		3.times do
-			puts "something here"			
-		end
-	end
-
-# while loop
-	def while1
-		i = 0
-		while i < 3 do
-			puts i
-			i = i + 1
-		end
-	end
-
-# ensures while loop is conducted at least once
-	def while2
-		x = 3
 		begin
-			puts x = x + 1
-		end while x < 3
+			blog_page = agent.get(link)
+			
+			parse_blogs(blog_page)
+
+			link = blog_page.extract('a.older_posts', attr: :href)
+		end while link
 	end
 
-# FOR each element in blog_name, output the element
-	def for_loop
-		blog_names = ['Blog 1', 'Blog 2', 'Blog 3']
-		for blog_name in blog_names
-			puts blog_name
+	def parse_blogs(page)
+		page.extract_all('.b-post a.btn.btn-lg__trans--color3', attr: :href).each do |read_more_url|
+			read_more_page = agent.get(read_more_url)
+
+			puts read_more_page.extract('.post__author')
 		end
 	end
 
-# for EACH element in blog_name, output the element [easier to write]
-	def each_loop
-		blog_names = ['Blog A', 'Blog B', 'Blog C']
-
-		blog_names.each do |blog_name|
-			puts blog_name
+	def agent
+		@mechanize_agent ||= begin 
+			our_mechanize_agent = Mechanize.new
+			our_mechanize_agent.agent.http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+			our_mechanize_agent
 		end
 	end
-
 end
